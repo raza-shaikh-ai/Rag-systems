@@ -18,7 +18,11 @@ os.environ.setdefault("HF_HOME", str(MODEL_DIR))
 TEMP_DIR.mkdir(exist_ok=True)
 from inject import inject
 
-app = FastAPI()
+app = FastAPI( 
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json"
+    )
 
 @app.get("/")
 def root():
@@ -28,7 +32,6 @@ def root():
 
 @app.post("/login")
 def login(username: str):
-    # deterministic scope
     scope_id = hashlib.sha256(username.lower().encode()).hexdigest()
 
     token = create_scope_token(scope_id)
