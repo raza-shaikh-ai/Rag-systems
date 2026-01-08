@@ -28,6 +28,16 @@ app = FastAPI(
 def root():
     return {"status": "RAG Backend is running"}
 
+@app.get("/env_debug")
+def env_debug():
+    return {
+        "key_exists": "key" in os.environ,
+        "key_value": os.environ.get("key", "NOT_SET")[:10] + "..." if os.environ.get("key") else "NOT_SET",
+        "grok_exists": "grok" in os.environ,
+        "grok_value": os.environ.get("grok", "NOT_SET")[:10] + "..." if os.environ.get("grok") else "NOT_SET",
+        "all_env_keys": [key for key in os.environ.keys() if not key.startswith("_") and key not in ["PATH", "HOME", "USER"]]
+    }
+
 
 
 @app.post("/login")
@@ -37,18 +47,6 @@ def login(username: str):
     token = create_scope_token(scope_id)
 
     return {"token": token}
-
-@app.post("/validate_token")
-def validate_token(token: str):
-    from auth.jwtutils import decode_scope_token
-    try:
-        scope_id = decode_scope_token(token)
-        if scope_id:
-            return {"valid": True, "scope_id": scope_id}
-        else:
-            return {"valid": False, "error": "Token decode returned None"}
-    except Exception as e:
-        return {"valid": False, "error": str(e)}
 
 @app.post("/inject/file")
 async def inject_file(
