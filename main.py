@@ -38,6 +38,18 @@ def login(username: str):
 
     return {"token": token}
 
+@app.post("/validate_token")
+def validate_token(token: str):
+    from auth.jwtutils import decode_scope_token
+    try:
+        scope_id = decode_scope_token(token)
+        if scope_id:
+            return {"valid": True, "scope_id": scope_id}
+        else:
+            return {"valid": False, "error": "Token decode returned None"}
+    except Exception as e:
+        return {"valid": False, "error": str(e)}
+
 @app.post("/inject/file")
 async def inject_file(
     file: UploadFile,
