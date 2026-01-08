@@ -1,13 +1,29 @@
-FROM python:3.12
+FROM python:3.11.4-slim
 
-WORKDIR /code
+WORKDIR /app
 
-COPY ./requirements.txt /code/requirements.txt
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy all source code including .env
 COPY . .
 
-EXPOSE 7860
+# Set environment variables explicitly in Docker
+ENV PYTHONPATH=/app
+ENV TOKENIZERS_PARALLELISM=false
+ENV HF_HOME=/app/models
 
-CMD ["shiny", "run", "app.py", "--host", "0.0.0.0", "--port", "7860"]
+# Create necessary directories with proper permissions
+RUN mkdir -p models temp chroma_db && \
+    chmod 755 models temp chroma_db
+
+EXPOSE 8000
+
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
