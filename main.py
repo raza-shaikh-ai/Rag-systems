@@ -28,17 +28,6 @@ app = FastAPI(
 def root():
     return {"status": "RAG Backend is running"}
 
-@app.get("/env_debug")
-def env_debug():
-    return {
-        "key_exists": "key" in os.environ,
-        "key_value": os.environ.get("key", "NOT_SET")[:10] + "..." if os.environ.get("key") else "NOT_SET",
-        "grok_exists": "grok" in os.environ,
-        "grok_value": os.environ.get("grok", "NOT_SET")[:10] + "..." if os.environ.get("grok") else "NOT_SET",
-        "all_env_keys": [key for key in os.environ.keys() if not key.startswith("_") and key not in ["PATH", "HOME", "USER"]]
-    }
-
-
 
 @app.post("/login")
 def login(username: str):
@@ -63,7 +52,7 @@ async def inject_file(
     elif filename.endswith('.txt'):
         source_type = 'txt'
     else:
-        return {"error": f"Unsupported file type. Supported: .pdf, .csv, .docx, .txt"}
+        return {"error": f"Unsupported file type. Supported:  .pdf, .csv, .docx, .txt"}
 
     # Use absolute path
     path = TEMP_DIR / file.filename
