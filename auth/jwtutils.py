@@ -1,5 +1,5 @@
 from jose import jwt, JWTError
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -13,7 +13,7 @@ EXPIRE_DAYS = 4
 def create_scope_token(scope_id: str):
     payload = {
         "scope_id": scope_id,
-        "exp": datetime.utcnow() + timedelta(days=EXPIRE_DAYS)
+        "exp": datetime.now(timezone.utc) + timedelta(days=EXPIRE_DAYS)
     }
 
     token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
