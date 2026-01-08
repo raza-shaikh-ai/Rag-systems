@@ -1,11 +1,12 @@
 ---
-title: Shiny for Python template
+title: Main Dev
 emoji: 🌍
 colorFrom: yellow
 colorTo: indigo
 sdk: docker
 pinned: false
-license: mit
+license: other
+short_description: rag system
 ---
 
 This is a templated Space for [Shiny for Python](https://shiny.rstudio.com/py/). 
