@@ -4,30 +4,31 @@ from langchain_groq import ChatGroq
 import os
 
 rag_prompt = PromptTemplate(
-    template="""
-You are a precise question-answering assistant.
+    template="""You are a precise assistant that answers questions using only the provided context.
 
-Answer the question using ONLY the context below.
-The question may be incomplete — infer the intended question and answer it correctly.
-If the answer is a person, return ONLY the person's name.
-If the answer is not present in the context, say:
-"Not in your documents."
+INSTRUCTIONS:
+- Give direct, concise answers
+- Use ONLY information from the context below
+- If asking for a name, respond with just the name
+- If asking for a date, respond with just the date
+- If information is not in the context, respond: "Not in your documents."
+- Do not repeat the question
+- Do not add extra explanations
 
-Context:
+CONTEXT:
 {context}
 
-Question:
-{question}
+QUESTION: {question}
 
-Answer:
-""",
+ANSWER:""",
     input_variables=["context", "question"]
 )
 
 model = ChatGroq(
     model="llama-3.1-8b-instant",
     api_key=os.getenv("grok"),
-    max_tokens= 150
+    max_tokens=100,  
+    temperature=0 
 )
 
 parser = StrOutputParser()
