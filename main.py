@@ -20,6 +20,12 @@ from inject import inject
 
 app = FastAPI()
 
+@app.get("/")
+def root():
+    return {"status": "RAG Backend is running"}
+
+
+
 @app.post("/login")
 def login(username: str):
     # deterministic scope
