@@ -1,7 +1,10 @@
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_openai import ChatOpenAI
+from dotenv import load_dotenv
 import os
+
+load_dotenv()
 
 simple_prompt = PromptTemplate(
     template="""
@@ -20,13 +23,12 @@ Answer:
 )
 
 model = ChatOpenAI(
-    model="meta-llama/llama-3.1-8b-instant",
+    model="deepseek/deepseek-chat",
     api_key=os.getenv("openrouter"),
     base_url="https://openrouter.ai/api/v1",
-    max_tokens=300
+    max_tokens=500
 )
 
 parser = StrOutputParser()
 
 simple_chain = simple_prompt | model | parser
-

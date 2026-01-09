@@ -1,7 +1,10 @@
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_openai import ChatOpenAI
+from dotenv import load_dotenv
 import os
+
+load_dotenv()
 
 rag_prompt = PromptTemplate(
     template="""You are a precise assistant that answers questions using only the provided context.
@@ -25,11 +28,11 @@ ANSWER:""",
 )
 
 model = ChatOpenAI(
-    model="meta-llama/llama-3.1-8b-instant",
+    model="deepseek/deepseek-chat",
     api_key=os.getenv("openrouter"),
     base_url="https://openrouter.ai/api/v1",
-    max_tokens=50,
-    temperature=0
+    max_tokens=100,
+    temperature=0.1
 )
 
 parser = StrOutputParser()
