@@ -1,6 +1,6 @@
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from langchain_groq import ChatGroq
+from langchain_openai import ChatOpenAI
 import os
 
 simple_prompt = PromptTemplate(
@@ -19,9 +19,10 @@ Answer:
     input_variables=["question"]
 )
 
-model = ChatGroq(
-    model="llama-3.1-8b-instant",
-    api_key=os.getenv("grok"),
+model = ChatOpenAI(
+    model="meta-llama/llama-3.1-8b-instant",
+    api_key=os.getenv("openrouter"),
+    base_url="https://openrouter.ai/api/v1",
     max_tokens=300
 )
 
