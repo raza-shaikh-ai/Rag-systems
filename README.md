@@ -7,6 +7,7 @@ sdk: docker
 pinned: false
 ---
 
+
 # RAG Backend API
 
 FastAPI-based Retrieval Augmented Generation backend.

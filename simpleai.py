@@ -17,7 +17,7 @@ If you do not know the answer, say:
 Question:
 {question}
 
-Answer:
+Answer: 
 """,
     input_variables=["question"]
 )
