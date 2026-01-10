@@ -24,7 +24,7 @@ Answer:
 
 model = ChatOpenAI(
     model="deepseek/deepseek-chat",
-    api_key=os.getenv("openrouter"),
+    api_key=os.getenv("openrouter").strip(),
     base_url="https://openrouter.ai/api/v1",
     max_tokens=500,
     temperature=0.4
