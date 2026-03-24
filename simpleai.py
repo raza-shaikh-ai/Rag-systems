@@ -1,4 +1,5 @@
 from langchain_core.prompts import PromptTemplate
+from langchain_core.runnables import RunnableLambda
 from langchain_core.output_parsers import StrOutputParser
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
@@ -24,10 +25,12 @@ Answer:
 )
 
 model = ONNXChatModel()
+runnable_model = RunnableLambda(model.invoke)
 
 parser = StrOutputParser()
 
-simple_chain = simple_prompt | model | parser
+
+simple_chain = simple_prompt | runnable_model | parser
 
 """
 model = ChatOpenAI(
