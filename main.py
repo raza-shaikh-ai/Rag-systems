@@ -4,7 +4,7 @@ import hashlib
 from fastapi import FastAPI,Depends,UploadFile, Form
 from auth.dependencies import get_scope_id
 from auth.jwtutils import create_scope_token
-from rewrite.queryrewrite import rewrite
+#from rewrite.queryrewrite import rewrite
 from simpleai import simple_chain
 os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 from dotenv import load_dotenv
