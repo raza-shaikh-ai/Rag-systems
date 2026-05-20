@@ -1,6 +1,6 @@
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from dotenv import load_dotenv
 import os
 load_dotenv()
@@ -23,11 +23,10 @@ Answer:
 )
 
 
-model = ChatOpenAI(
-    model="deepseek/deepseek-v4-flash:free",
-    api_key=os.getenv("openrouter").strip(),
-    base_url="https://openrouter.ai/api/v1",
-    max_tokens=500,
+model = ChatGoogleGenerativeAI(
+    model="models/gemini-flash-latest",
+    google_api_key=os.getenv("gemini"),
+    max_output_tokens=500,
     temperature=0.4
 )
 

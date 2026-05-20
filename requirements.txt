@@ -19,6 +19,7 @@ langchain-text-splitters==1.0.0
 langchain-openai==1.1.7
 langchain-huggingface==1.2.0
 langchain-chroma==1.1.0
+langchain-google-genai==4.2.1
 
 # Vector database
 chromadb==1.4.0
