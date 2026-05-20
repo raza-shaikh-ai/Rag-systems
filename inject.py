@@ -26,4 +26,4 @@ def inject(source_type: str, source: str, scope_id: str):
         doc.metadata["scope_id"] = scope_id
     store_chunks(chunks)
     all_chunks.extend(chunks)
-    reinitialize_bm25()  # Reinitialize BM25 with new documents
+    reinitialize_bm25()  

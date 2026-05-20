@@ -12,6 +12,7 @@ rag_prompt = PromptTemplate(
 INSTRUCTIONS:
 - Give direct, concise answers
 - Use ONLY information from the context below
+- Answer in the SAME language as the user's question
 - If asking for a name, respond with just the name
 - If asking for a date, respond with just the date
 - If information is not in the context, respond: "Not in your documents."
@@ -31,7 +32,7 @@ model = ChatOpenAI(
     model="deepseek/deepseek-chat",
     api_key=os.getenv("openrouter").strip(),
     base_url="https://openrouter.ai/api/v1",
-    max_tokens=150,
+    max_tokens=300,
     temperature=0.1
 )
 
