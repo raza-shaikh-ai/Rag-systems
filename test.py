@@ -9,11 +9,6 @@ simple_prompt = PromptTemplate(
     template="""
 You are a helpful assistant.
 
-Answer the user's question clearly and concisely.
-Answer in the SAME language as the user's question.
-If you do not know the answer, say:
-"I don't have enough information to answer that." (in the user's language)
-
 Question:
 {question}
 
@@ -21,7 +16,6 @@ Answer:
 """,
     input_variables=["question"]
 )
-
 
 model = ChatOpenAI(
     model="deepseek/deepseek-v4-flash:free",
@@ -35,3 +29,7 @@ parser = StrOutputParser()
 
 
 simple_chain = simple_prompt | model | parser
+
+res = simple_chain.invoke({"question": "hello how its going"})
+
+print(res)
