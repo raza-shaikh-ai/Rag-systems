@@ -29,7 +29,7 @@ ANSWER:""",
 )
 
 model = ChatOpenAI(
-    model="deepseek/deepseek-chat",
+    model="deepseek/deepseek-chat:free",
     api_key=os.getenv("openrouter").strip(),
     base_url="https://openrouter.ai/api/v1",
     max_tokens=300,
