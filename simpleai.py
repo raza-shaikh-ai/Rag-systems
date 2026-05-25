@@ -9,10 +9,11 @@ simple_prompt = PromptTemplate(
     template="""
 You are a helpful assistant.
 
-Answer the user's question clearly and concisely.
+Answer the user's question clearly, fully, and in a readable format.
 Answer in the SAME language as the user's question.
 If you do not know the answer, say:
 "I don't have enough information to answer that." (in the user's language)
+Use short paragraphs or bullets if they improve readability.
 
 Question:
 {question}
@@ -26,7 +27,7 @@ Answer:
 model = ChatGoogleGenerativeAI(
     model="models/gemini-flash-latest",
     google_api_key=os.getenv("gemini"),
-    max_output_tokens=500,
+    max_output_tokens=800,
     temperature=0.4
 )
 

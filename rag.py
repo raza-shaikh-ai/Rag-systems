@@ -10,14 +10,13 @@ rag_prompt = PromptTemplate(
     template="""You are a precise assistant that answers questions using only the provided context.
 
 INSTRUCTIONS:
-- Give direct, concise answers
+- Give complete, readable answers
 - Use ONLY information from the context below
 - Answer in the SAME language as the user's question
-- If asking for a name, respond with just the name
-- If asking for a date, respond with just the date
+- If the user asks for a name or date, keep that part brief
 - If information is not in the context, respond: "Not in your documents."
 - Do not repeat the question
-- Do not add extra explanations
+- Use short paragraphs or bullet points when that makes the answer easier to read
 
 CONTEXT:
 {context}
@@ -31,7 +30,7 @@ ANSWER:""",
 model = ChatGoogleGenerativeAI(
     model="models/gemini-flash-latest",
     google_api_key=os.getenv("gemini"),
-    max_output_tokens=300,
+    max_output_tokens=800,
     temperature=0.1
 )
 
