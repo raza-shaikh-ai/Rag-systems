@@ -10,8 +10,7 @@ asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
 from ragas import evaluate
 from ragas.llms import LangchainLLMWrapper
 from langchain_huggingface import HuggingFaceEmbeddings
-
-from rag import model
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 os.environ.setdefault("USER_AGENT", "main_dev_ragas_evaluation")
 
@@ -93,7 +92,14 @@ def run_ragas_evaluation(records: list[dict], run_dir: Path) -> dict:
     _write_jsonl(run_dir / "dataset.jsonl", dataset_rows)
 
     dataset = Dataset.from_list(dataset_rows)
-    evaluator_llm = LangchainLLMWrapper(model)
+    evaluator_model = ChatGoogleGenerativeAI(
+        model="models/gemini-flash-latest",
+        google_api_key=os.getenv("gemini"),
+        max_output_tokens=1024,
+        temperature=0.0,
+        model_kwargs={"response_mime_type": "application/json"},
+    )
+    evaluator_llm = LangchainLLMWrapper(evaluator_model)
     evaluator_embeddings = HuggingFaceEmbeddings(
         model_name="BAAI/bge-m3",
         cache_folder=None,
