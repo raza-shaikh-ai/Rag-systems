@@ -2,6 +2,7 @@ import json
 import os
 import asyncio
 import importlib
+import math
 from pathlib import Path
 
 from datasets import Dataset
@@ -37,12 +38,24 @@ def _serialize_result(result):
     if hasattr(result, "to_pandas"):
         frame = result.to_pandas()
         try:
-            return frame.to_dict(orient="records")
+            return _make_json_safe(frame.to_dict(orient="records"))
         except Exception:
-            return frame.to_dict()
+            return _make_json_safe(frame.to_dict())
     if hasattr(result, "to_dict"):
-        return result.to_dict()
+        return _make_json_safe(result.to_dict())
     return {"result": str(result)}
+
+
+def _make_json_safe(value):
+    if isinstance(value, dict):
+        return {key: _make_json_safe(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_make_json_safe(item) for item in value]
+    if isinstance(value, tuple):
+        return [_make_json_safe(item) for item in value]
+    if isinstance(value, float) and not math.isfinite(value):
+        return None
+    return value
 
 
 def _write_json(path: Path, payload: dict) -> None:
@@ -104,6 +117,8 @@ def run_ragas_evaluation(records: list[dict], run_dir: Path) -> dict:
         "sample_count": len(dataset_rows),
         "metrics": _serialize_result(result),
     }
+
+    summary = _make_json_safe(summary)
 
     _write_json(run_dir / "results.json", summary)
     return summary
