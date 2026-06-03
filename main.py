@@ -102,7 +102,7 @@ async def ask(
     query_rewriting = question #rewrite require higher ""rewrite(question)"" compuation
     vector_retriever = get_vector_retriever(scope_id)
     top_doc = hybrid_retrieve_top1(query_rewriting, bm25_retriever, vector_retriever, scope_id)
-
+    print(top_doc)
     if not top_doc or len(top_doc.page_content.strip()) < 10:
         answer = simple_chain.invoke({"question": query_rewriting})
         _persist_interaction(scope_id, query_rewriting, answer, [])

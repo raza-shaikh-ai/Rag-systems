@@ -73,6 +73,7 @@ def run_ragas_evaluation(records: list[dict], run_dir: Path) -> dict:
                 "question": record.get("question", ""),
                 "answer": record.get("answer", ""),
                 "contexts": contexts,
+                "reference": "\n\n".join(contexts),
             }
         )
 
