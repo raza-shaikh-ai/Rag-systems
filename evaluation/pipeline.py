@@ -80,6 +80,9 @@ def run_ragas_evaluation(records: list[dict], run_dir: Path) -> dict:
         contexts = record.get("contexts") or []
         if isinstance(contexts, str):
             contexts = [contexts]
+        # skip fallback answers that had no retrieved context
+        if not contexts:
+            continue
         dataset_rows.append(
             {
                 "question": record.get("question", ""),
@@ -88,6 +91,9 @@ def run_ragas_evaluation(records: list[dict], run_dir: Path) -> dict:
                 "reference": "\n\n".join(contexts),
             }
         )
+
+    if not dataset_rows:
+        raise ValueError("No RAG interactions with retrieved context found. Ask questions after injecting a document first.")
 
     _write_jsonl(run_dir / "dataset.jsonl", dataset_rows)
 
@@ -105,12 +111,15 @@ def run_ragas_evaluation(records: list[dict], run_dir: Path) -> dict:
         encode_kwargs={"normalize_embeddings": True},
     )
 
+    # RAGAS 0.2+: do NOT pass llm/embeddings to metric constructors.
+    # They must be set only via the evaluate() call — passing them to the
+    # constructor is silently ignored in newer RAGAS and causes null scores.
     result = evaluate(
         dataset=dataset,
         metrics=[
-            _load_metric_class("AnswerRelevancy")(llm=evaluator_llm, embeddings=evaluator_embeddings),
-            _load_metric_class("Faithfulness")(llm=evaluator_llm),
-            _load_metric_class("ContextPrecision")(llm=evaluator_llm),
+            _load_metric_class("AnswerRelevancy")(),
+            _load_metric_class("Faithfulness")(),
+            _load_metric_class("ContextPrecision")(),
         ],
         llm=evaluator_llm,
         embeddings=evaluator_embeddings,
