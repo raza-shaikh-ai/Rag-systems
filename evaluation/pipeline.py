@@ -1,13 +1,16 @@
 import json
+import os
 from pathlib import Path
 
 from datasets import Dataset
 from ragas import evaluate
-from ragas.embeddings import HuggingFaceEmbeddings
 from ragas.llms import LangchainLLMWrapper
 from ragas.metrics.collections import AnswerRelevancy, ContextPrecision, Faithfulness
+from langchain_huggingface import HuggingFaceEmbeddings
 
 from rag import model
+
+os.environ.setdefault("USER_AGENT", "main_dev_ragas_evaluation")
 
 
 def _serialize_result(result):

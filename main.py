@@ -12,6 +12,8 @@ os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 from dotenv import load_dotenv
 load_dotenv()
 
+os.environ.setdefault("USER_AGENT", "main_dev_backend")
+
 BASE_DIR = Path(__file__).resolve().parent
 MODEL_DIR = BASE_DIR / "models"
 TEMP_DIR = BASE_DIR / "temp"
@@ -22,7 +24,6 @@ TEMP_DIR.mkdir(exist_ok=True)
 EVAL_DATA_DIR.mkdir(exist_ok=True)
 from inject import inject
 from evaluation.store import InteractionStore
-from evaluation.pipeline import run_ragas_evaluation
 
 app = FastAPI( 
     docs_url="/docs",
@@ -119,6 +120,8 @@ async def ask(
 
 @app.get("/evaluation/run")
 def run_evaluation(scope_id: str | None = None):
+    from evaluation.pipeline import run_ragas_evaluation
+
     records = interaction_store.load_interactions(scope_id=scope_id)
     if not records:
         raise HTTPException(status_code=404, detail="No saved interaction data available for evaluation")
