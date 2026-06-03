@@ -1,7 +1,7 @@
-def hybrid_retrieve_top1(query, bm25_retriever, vector_retriever, scope_id=None, k_each=5):
+def hybrid_retrieve(query, bm25_retriever, vector_retriever, scope_id=None, k_each=5):
     """Hybrid retrieval using Reciprocal Rank Fusion (RRF).
-    
-    RRF is language-agnostic — it fuses results based on rank positions,
+
+    RRF is language-agnostic - it fuses results based on rank positions,
     not word overlap, so it works identically for all languages.
     """
 
@@ -29,8 +29,12 @@ def hybrid_retrieve_top1(query, bm25_retriever, vector_retriever, scope_id=None,
         doc_map[key] = doc
 
     if not scores:
-        return None
+        return []
 
-    
-    best_key = max(scores, key=scores.get)
-    return doc_map[best_key]
+    ranked_keys = sorted(scores, key=scores.get, reverse=True)
+    return [doc_map[key] for key in ranked_keys]
+
+
+def hybrid_retrieve_top1(query, bm25_retriever, vector_retriever, scope_id=None, k_each=5):
+    ranked_docs = hybrid_retrieve(query, bm25_retriever, vector_retriever, scope_id, k_each)
+    return ranked_docs[0] if ranked_docs else None

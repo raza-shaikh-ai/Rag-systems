@@ -1,7 +1,9 @@
 import os
+import json
+from datetime import datetime, timezone
 from pathlib import Path
 import hashlib
-from fastapi import FastAPI,Depends,UploadFile, Form
+from fastapi import FastAPI,Depends,UploadFile, Form, HTTPException
 from auth.dependencies import get_scope_id
 from auth.jwtutils import create_scope_token
 #from rewrite.queryrewrite import rewrite
@@ -13,15 +15,33 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent
 MODEL_DIR = BASE_DIR / "models"
 TEMP_DIR = BASE_DIR / "temp"
+EVAL_DATA_DIR = BASE_DIR / "evaluation_data"
 
 os.environ.setdefault("HF_HOME", str(MODEL_DIR))
 TEMP_DIR.mkdir(exist_ok=True)
+EVAL_DATA_DIR.mkdir(exist_ok=True)
 from inject import inject
+from evaluation.store import InteractionStore
+from evaluation.pipeline import run_ragas_evaluation
 
 app = FastAPI( 
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json"
+    )
+
+interaction_store = InteractionStore(EVAL_DATA_DIR)
+
+
+def _persist_interaction(scope_id: str, question: str, answer: str, contexts: list[str]):
+    interaction_store.save_interaction(
+        {
+            "scope_id": scope_id,
+            "question": question,
+            "answer": answer,
+            "contexts": contexts,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
     )
 
 @app.get("/")
@@ -83,14 +103,33 @@ async def ask(
     top_doc = hybrid_retrieve_top1(query_rewriting, bm25_retriever, vector_retriever, scope_id)
 
     if not top_doc or len(top_doc.page_content.strip()) < 10:
-        return {"answer": simple_chain.invoke({"question": query_rewriting})}
+        answer = simple_chain.invoke({"question": query_rewriting})
+        _persist_interaction(scope_id, query_rewriting, answer, [])
+        return {"answer": answer}
 
     answer = rag_chain.invoke({
         "context": top_doc.page_content,
         "question": query_rewriting
     })
 
+    _persist_interaction(scope_id, query_rewriting, answer, [top_doc.page_content])
+
     return {"answer": answer}
+
+
+@app.get("/evaluation/run")
+def run_evaluation(scope_id: str | None = None):
+    records = interaction_store.load_interactions(scope_id=scope_id)
+    if not records:
+        raise HTTPException(status_code=404, detail="No saved interaction data available for evaluation")
+
+    run_dir = interaction_store.create_run_dir(scope_id=scope_id)
+    summary = run_ragas_evaluation(records, run_dir)
+    summary["run_dir"] = str(run_dir)
+    summary["scope_id"] = scope_id or "all"
+    with open(run_dir / "summary.json", "w", encoding="utf-8") as handle:
+        json.dump(summary, handle, ensure_ascii=False, indent=2)
+    return summary
 
 if __name__ == "__main__":
     import uvicorn
@@ -101,8 +140,3 @@ if __name__ == "__main__":
     )
 
 
-
-
-
-
-#
