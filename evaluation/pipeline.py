@@ -97,7 +97,6 @@ def run_ragas_evaluation(records: list[dict], run_dir: Path) -> dict:
         google_api_key=os.getenv("gemini"),
         max_output_tokens=1024,
         temperature=0.0,
-        model_kwargs={"response_mime_type": "application/json"},
     )
     evaluator_llm = LangchainLLMWrapper(evaluator_model)
     evaluator_embeddings = HuggingFaceEmbeddings(
