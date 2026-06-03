@@ -203,8 +203,18 @@ input::placeholder { color: var(--text-muted); }
 }
 .tab-panel {
   display: none; flex-direction: column; height: 100%; padding: 32px 36px;
+  overflow: hidden;
 }
 .tab-panel.active { display: flex; }
+
+/* Eval tab scrolls as a whole (not chat — that has its own internal scroll) */
+#tab-eval {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--glass-border) transparent;
+}
+#tab-eval::-webkit-scrollbar { width: 4px; }
+#tab-eval::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 4px; }
 
 .panel-header { margin-bottom: 28px; }
 .panel-header h2 { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
@@ -498,9 +508,7 @@ input::placeholder { color: var(--text-muted); }
 
 /* ─── Eval History ─────────────────────────────────────────────── */
 .eval-history {
-  flex: 1; overflow-y: auto;
   display: flex; flex-direction: column; gap: 12px;
-  scrollbar-width: thin; scrollbar-color: var(--glass-border) transparent;
 }
 .eval-history::-webkit-scrollbar { width: 4px; }
 .eval-history::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 4px; }

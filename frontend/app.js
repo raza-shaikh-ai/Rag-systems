@@ -101,6 +101,7 @@ function switchTab(name) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById(`tab-${name}`).classList.add('active');
   document.getElementById(`nav-${name}`).classList.add('active');
+  if (name === 'eval') renderEvalHistory();
 }
 
 /* ══════════════════════════════════════════
@@ -434,15 +435,8 @@ function toggleRun(index) {
   body.style.display = isOpen ? 'none' : 'block';
 }
 
-// Load history from backend when switching to eval tab
-const _origSwitchTab = switchTab;
-function switchTab(name) {
-  _origSwitchTab(name);
-  if (name === 'eval') renderEvalHistory();
-}
 
-function renderEvalResults() {} // kept for safety, no longer used directly
-function renderEvalResults() {} // no longer used
+
 function escapeHtml(str) {
   return String(str)
     .replace(/&/g, '&amp;')
