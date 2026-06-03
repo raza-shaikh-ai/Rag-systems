@@ -1,18 +1,36 @@
 import json
 import os
 import asyncio
+import importlib
 from pathlib import Path
 
 from datasets import Dataset
 asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
 from ragas import evaluate
 from ragas.llms import LangchainLLMWrapper
-from ragas.metrics.collections import AnswerRelevancy, ContextPrecision, Faithfulness
 from langchain_huggingface import HuggingFaceEmbeddings
 
 from rag import model
 
 os.environ.setdefault("USER_AGENT", "main_dev_ragas_evaluation")
+
+
+def _load_metric_class(metric_name: str):
+    candidate_modules = [
+        "ragas.metrics",
+        "ragas.metrics.collections",
+    ]
+
+    for module_name in candidate_modules:
+        try:
+            module = importlib.import_module(module_name)
+        except Exception:
+            continue
+        metric_class = getattr(module, metric_name, None)
+        if metric_class is not None:
+            return metric_class
+
+    raise ImportError(f"Could not load RAGAS metric class: {metric_name}")
 
 
 def _serialize_result(result):
@@ -71,9 +89,9 @@ def run_ragas_evaluation(records: list[dict], run_dir: Path) -> dict:
     result = evaluate(
         dataset=dataset,
         metrics=[
-            AnswerRelevancy(llm=evaluator_llm, embeddings=evaluator_embeddings),
-            Faithfulness(llm=evaluator_llm),
-            ContextPrecision(llm=evaluator_llm),
+            _load_metric_class("AnswerRelevancy")(llm=evaluator_llm, embeddings=evaluator_embeddings),
+            _load_metric_class("Faithfulness")(llm=evaluator_llm),
+            _load_metric_class("ContextPrecision")(llm=evaluator_llm),
         ],
         llm=evaluator_llm,
         embeddings=evaluator_embeddings,
