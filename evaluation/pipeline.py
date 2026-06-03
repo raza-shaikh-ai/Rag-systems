@@ -3,8 +3,6 @@ import os
 import asyncio
 import importlib
 import math
-import subprocess
-import sys
 from pathlib import Path
 
 from datasets import Dataset
@@ -72,7 +70,7 @@ def _write_jsonl(path: Path, rows: list[dict]) -> None:
             handle.write("\n")
 
 
-def _run_ragas_evaluation_local(records: list[dict], run_dir: Path) -> dict:
+def run_ragas_evaluation(records: list[dict], run_dir: Path) -> dict:
     if not records:
         raise ValueError("No interaction records available for evaluation")
 
@@ -124,31 +122,3 @@ def _run_ragas_evaluation_local(records: list[dict], run_dir: Path) -> dict:
 
     _write_json(run_dir / "results.json", summary)
     return summary
-
-
-def run_ragas_evaluation(records: list[dict], run_dir: Path) -> dict:
-    run_dir.mkdir(parents=True, exist_ok=True)
-
-    input_path = run_dir / "input.json"
-    _write_json(input_path, {"records": records})
-
-    command = [
-        sys.executable,
-        "-m",
-        "evaluation.worker",
-        str(input_path),
-        str(run_dir),
-    ]
-
-    completed = subprocess.run(command, check=False, capture_output=True, text=True)
-    if completed.returncode != 0:
-        raise RuntimeError(
-            f"RAGAS worker failed with exit code {completed.returncode}: {completed.stderr.strip()}"
-        )
-
-    summary_path = run_dir / "summary.json"
-    if not summary_path.exists():
-        raise RuntimeError("RAGAS worker did not produce summary.json")
-
-    with open(summary_path, "r", encoding="utf-8") as handle:
-        return json.load(handle)
