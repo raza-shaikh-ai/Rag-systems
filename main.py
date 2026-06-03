@@ -122,14 +122,14 @@ async def ask(
 def run_evaluation(scope_id: str | None = None):
     from evaluation.pipeline import run_ragas_evaluation
 
-    records = interaction_store.load_interactions(scope_id=scope_id)
+    records = interaction_store.load_interactions()
     if not records:
         raise HTTPException(status_code=404, detail="No saved interaction data available for evaluation")
 
-    run_dir = interaction_store.create_run_dir(scope_id=scope_id)
+    run_dir = interaction_store.create_run_dir(scope_id=None)
     summary = run_ragas_evaluation(records, run_dir)
     summary["run_dir"] = str(run_dir)
-    summary["scope_id"] = scope_id or "all"
+    summary["scope_id"] = "all"
     with open(run_dir / "summary.json", "w", encoding="utf-8") as handle:
         json.dump(summary, handle, ensure_ascii=False, indent=2)
     return summary

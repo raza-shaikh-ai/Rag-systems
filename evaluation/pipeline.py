@@ -1,8 +1,10 @@
 import json
 import os
+import asyncio
 from pathlib import Path
 
 from datasets import Dataset
+asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
 from ragas import evaluate
 from ragas.llms import LangchainLLMWrapper
 from ragas.metrics.collections import AnswerRelevancy, ContextPrecision, Faithfulness
