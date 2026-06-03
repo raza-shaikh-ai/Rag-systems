@@ -122,17 +122,36 @@ async def ask(
 def run_evaluation(scope_id: str | None = None):
     from evaluation.pipeline import run_ragas_evaluation
 
-    records = interaction_store.load_interactions()
-    if not records:
-        raise HTTPException(status_code=404, detail="No saved interaction data available for evaluation")
+    # Only load interactions that haven't been evaluated yet
+    new_records = interaction_store.load_interactions(only_unevaluated=True)
+    if not new_records:
+        raise HTTPException(
+            status_code=404,
+            detail="No new interactions to evaluate. All existing interactions have already been evaluated."
+        )
 
     run_dir = interaction_store.create_run_dir(scope_id=None)
-    summary = run_ragas_evaluation(records, run_dir)
+    summary = run_ragas_evaluation(new_records, run_dir)
     summary["run_dir"] = str(run_dir)
     summary["scope_id"] = "all"
+    summary["evaluated_at"] = datetime.now(timezone.utc).isoformat()
+
+    # Persist this run's summary
     with open(run_dir / "summary.json", "w", encoding="utf-8") as handle:
         json.dump(summary, handle, ensure_ascii=False, indent=2)
+
+    # Mark these interactions as evaluated so they won't be re-evaluated
+    evaluated_ids = [r.get("interaction_id") for r in new_records if r.get("interaction_id")]
+    interaction_store.mark_evaluated(evaluated_ids)
+
     return summary
+
+
+@app.get("/evaluation/history")
+def get_evaluation_history():
+    """Return all past evaluation run summaries, newest first."""
+    history = interaction_store.load_run_history()
+    return {"runs": history, "total": len(history)}
 
 if __name__ == "__main__":
     import uvicorn

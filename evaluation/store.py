@@ -26,15 +26,39 @@ class InteractionStore:
 
         return file_path
 
-    def load_interactions(self, scope_id: str | None = None) -> list[dict]:
+    def load_interactions(self, scope_id: str | None = None, only_unevaluated: bool = False) -> list[dict]:
         records = []
         for path in sorted(self.interactions_dir.glob("*.json")):
             with open(path, "r", encoding="utf-8") as handle:
                 record = json.load(handle)
             if scope_id and record.get("scope_id") != scope_id:
                 continue
+            if only_unevaluated and record.get("evaluated"):
+                continue
             records.append(record)
         return records
+
+    def mark_evaluated(self, interaction_ids: list[str]) -> None:
+        """Write evaluated=True back to each interaction file."""
+        id_set = set(interaction_ids)
+        for path in self.interactions_dir.glob("*.json"):
+            with open(path, "r", encoding="utf-8") as handle:
+                record = json.load(handle)
+            if record.get("interaction_id") in id_set:
+                record["evaluated"] = True
+                with open(path, "w", encoding="utf-8") as handle:
+                    json.dump(record, handle, ensure_ascii=False, indent=2)
+
+    def load_run_history(self) -> list[dict]:
+        """Return all past evaluation summaries, newest first."""
+        summaries = []
+        for summary_path in sorted(self.runs_dir.glob("*/summary.json"), reverse=True):
+            try:
+                with open(summary_path, "r", encoding="utf-8") as handle:
+                    summaries.append(json.load(handle))
+            except Exception:
+                continue
+        return summaries
 
     def create_run_dir(self, scope_id: str | None = None) -> Path:
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
