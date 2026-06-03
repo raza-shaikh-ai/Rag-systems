@@ -25,7 +25,7 @@ Answer:
 
 
 model = ChatGoogleGenerativeAI(
-    model="models/gemini-2.5-flash",
+    model="models/gemini-3.1-flash-lite",
     google_api_key=os.getenv("gemini"),
     max_output_tokens=800,
     temperature=0.4

@@ -85,9 +85,9 @@ def run_ragas_evaluation(records: list[dict], run_dir: Path) -> dict:
             continue
         dataset_rows.append(
             {
-                "question": record.get("question", ""),
-                "answer": record.get("answer", ""),
-                "contexts": contexts,
+                "user_input": record.get("question", ""),
+                "response": record.get("answer", ""),
+                "retrieved_contexts": contexts,
                 "reference": "\n\n".join(contexts),
             }
         )
@@ -99,7 +99,7 @@ def run_ragas_evaluation(records: list[dict], run_dir: Path) -> dict:
 
     dataset = Dataset.from_list(dataset_rows)
     evaluator_model = ChatGoogleGenerativeAI(
-        model="models/gemini-2.5-flash",
+        model="models/gemini-3.1-flash-lite",
         google_api_key=os.getenv("gemini"),
         max_output_tokens=1024,
         temperature=0.0,
@@ -111,9 +111,6 @@ def run_ragas_evaluation(records: list[dict], run_dir: Path) -> dict:
         encode_kwargs={"normalize_embeddings": True},
     )
 
-    # RAGAS 0.2+: do NOT pass llm/embeddings to metric constructors.
-    # They must be set only via the evaluate() call — passing them to the
-    # constructor is silently ignored in newer RAGAS and causes null scores.
     result = evaluate(
         dataset=dataset,
         metrics=[
