@@ -93,7 +93,7 @@ def run_ragas_evaluation(records: list[dict], run_dir: Path) -> dict:
 
     dataset = Dataset.from_list(dataset_rows)
     evaluator_model = ChatGoogleGenerativeAI(
-        model="models/gemini-flash-latest",
+        model="models/gemini-2.5-flash",
         google_api_key=os.getenv("gemini"),
         max_output_tokens=1024,
         temperature=0.0,
