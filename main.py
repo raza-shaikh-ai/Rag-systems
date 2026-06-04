@@ -3,6 +3,7 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 import hashlib
+from fastapi.responses import StreamingResponse
 from fastapi import FastAPI,Depends,UploadFile, Form, HTTPException
 from auth.dependencies import get_scope_id
 from auth.jwtutils import create_scope_token
@@ -104,54 +105,39 @@ async def ask(
     top_doc = hybrid_retrieve_top1(query_rewriting, bm25_retriever, vector_retriever, scope_id)
     print(top_doc)
     if not top_doc or len(top_doc.page_content.strip()) < 10:
-        answer = simple_chain.invoke({"question": query_rewriting})
-        _persist_interaction(scope_id, query_rewriting, answer, [])
-        return {"answer": answer}
+        async def generate_simple():
+            full = []
+            for chunk in simple_chain.stream({"question": query_rewriting}):
+                full.append(chunk)
+                yield chunk
+            _persist_interaction(scope_id, query_rewriting, "".join(full), [])
+        return StreamingResponse(generate_simple(), media_type="text/plain")
 
-    answer = rag_chain.invoke({
-        "context": top_doc.page_content,
-        "question": query_rewriting
-    })
-
-    _persist_interaction(scope_id, query_rewriting, answer, [top_doc.page_content])
-
-    return {"answer": answer}
+    context_text = top_doc.page_content
+    async def generate_rag():
+        full = []
+        for chunk in rag_chain.stream({"context": context_text, "question": query_rewriting}):
+            full.append(chunk)
+            yield chunk
+        _persist_interaction(scope_id, query_rewriting, "".join(full), [context_text])
+    return StreamingResponse(generate_rag(), media_type="text/plain")
 
 
 @app.get("/evaluation/run")
 def run_evaluation(scope_id: str | None = None):
     from evaluation.pipeline import run_ragas_evaluation
 
-    # Only load interactions that haven't been evaluated yet
-    new_records = interaction_store.load_interactions(only_unevaluated=True)
-    if not new_records:
-        raise HTTPException(
-            status_code=404,
-            detail="No new interactions to evaluate. All existing interactions have already been evaluated."
-        )
+    records = interaction_store.load_interactions()
+    if not records:
+        raise HTTPException(status_code=404, detail="No saved interaction data available for evaluation")
 
     run_dir = interaction_store.create_run_dir(scope_id=None)
-    summary = run_ragas_evaluation(new_records, run_dir)
+    summary = run_ragas_evaluation(records, run_dir)
     summary["run_dir"] = str(run_dir)
     summary["scope_id"] = "all"
-    summary["evaluated_at"] = datetime.now(timezone.utc).isoformat()
-
-    # Persist this run's summary
     with open(run_dir / "summary.json", "w", encoding="utf-8") as handle:
         json.dump(summary, handle, ensure_ascii=False, indent=2)
-
-    # Mark these interactions as evaluated so they won't be re-evaluated
-    evaluated_ids = [r.get("interaction_id") for r in new_records if r.get("interaction_id")]
-    interaction_store.mark_evaluated(evaluated_ids)
-
     return summary
-
-
-@app.get("/evaluation/history")
-def get_evaluation_history():
-    """Return all past evaluation run summaries, newest first."""
-    history = interaction_store.load_run_history()
-    return {"runs": history, "total": len(history)}
 
 if __name__ == "__main__":
     import uvicorn

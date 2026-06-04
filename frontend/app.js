@@ -124,12 +124,35 @@ async function sendQuestion() {
       method: 'POST',
       headers: { Authorization: `Bearer ${authToken}` }
     });
-    const data = await res.json();
+
+    if (!res.ok) {
+      // Try to parse error detail from JSON
+      let errMsg = 'Request failed';
+      try {
+        const errData = await res.json();
+        errMsg = errData.detail || errMsg;
+      } catch {}
+      throw new Error(errMsg);
+    }
+
     removeTyping(typingId);
 
-    if (!res.ok) throw new Error(data.detail || 'Request failed');
+    // Create an empty assistant message bubble for streaming
+    const { bubble } = appendMessageStreaming();
 
-    appendMessage('assistant', data.answer || 'No answer returned.');
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const text = decoder.decode(value, { stream: true });
+      bubble.textContent += text;
+      // Auto-scroll as tokens arrive
+      const container = document.getElementById('chat-messages');
+      container.scrollTop = container.scrollHeight;
+    }
+
   } catch (err) {
     removeTyping(typingId);
     appendMessage('assistant', `⚠ ${err.message}`);
@@ -162,6 +185,30 @@ function appendMessage(role, text) {
   div.appendChild(bubble);
   container.appendChild(div);
   container.scrollTop = container.scrollHeight;
+}
+
+function appendMessageStreaming() {
+  const container = document.getElementById('chat-messages');
+
+  const welcome = container.querySelector('.chat-welcome');
+  if (welcome) welcome.remove();
+
+  const div = document.createElement('div');
+  div.className = 'chat-message assistant';
+
+  const avatar = document.createElement('div');
+  avatar.className = 'msg-avatar';
+  avatar.textContent = '✦';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+  bubble.textContent = '';
+
+  div.appendChild(avatar);
+  div.appendChild(bubble);
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+  return { bubble };
 }
 
 function appendTyping() {
