@@ -14,13 +14,17 @@ Answer in the SAME language as the user's question.
 If you do not know the answer, say:
 "I don't have enough information to answer that." (in the user's language)
 Use short paragraphs or bullets if they improve readability.
+Use chat history to understand follow-up questions.
+
+Chat History:
+{chat_history}
 
 Question:
 {question}
 
 Answer: 
 """,
-    input_variables=["question"]
+    input_variables=["question", "chat_history"]
 )
 
 

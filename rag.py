@@ -17,6 +17,10 @@ INSTRUCTIONS:
 - If information is not in the context, respond: "Not in your documents."
 - Do not repeat the question
 - Use short paragraphs or bullet points when that makes the answer easier to read
+- Use chat history to understand follow-up questions
+
+CHAT HISTORY:
+{chat_history}
 
 CONTEXT:
 {context}
@@ -24,7 +28,7 @@ CONTEXT:
 QUESTION: {question}
 
 ANSWER:""",
-    input_variables=["context", "question"]
+    input_variables=["context", "question", "chat_history"]
 )
 
 model = ChatGoogleGenerativeAI(

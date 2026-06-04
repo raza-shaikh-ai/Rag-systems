@@ -34,6 +34,9 @@ app = FastAPI(
 
 interaction_store = InteractionStore(EVAL_DATA_DIR)
 
+# In-memory chat history per scope_id (last 5 turns)
+chat_histories: dict[str, list[dict]] = {}
+
 
 def _persist_interaction(scope_id: str, question: str, answer: str, contexts: list[str]):
     interaction_store.save_interaction(
@@ -104,22 +107,36 @@ async def ask(
     vector_retriever = get_vector_retriever(scope_id)
     top_doc = hybrid_retrieve_top1(query_rewriting, bm25_retriever, vector_retriever, scope_id)
     print(top_doc)
+
+    # caht history 
+    history = chat_histories.get(scope_id, [])
+    history_str = "\n".join(f"User: {h['q']}\nAssistant: {h['a']}" for h in history[-5:]) if history else "(none)"
+
+    def _save_turn(answer_text):
+        chat_histories.setdefault(scope_id, []).append({"q": query_rewriting, "a": answer_text})
+        if len(chat_histories[scope_id]) > 5:
+            chat_histories[scope_id] = chat_histories[scope_id][-5:]
+
     if not top_doc or len(top_doc.page_content.strip()) < 10:
         async def generate_simple():
             full = []
-            for chunk in simple_chain.stream({"question": query_rewriting}):
+            for chunk in simple_chain.stream({"question": query_rewriting, "chat_history": history_str}):
                 full.append(chunk)
                 yield chunk
-            _persist_interaction(scope_id, query_rewriting, "".join(full), [])
+            answer = "".join(full)
+            _save_turn(answer)
+            _persist_interaction(scope_id, query_rewriting, answer, [])
         return StreamingResponse(generate_simple(), media_type="text/plain")
 
     context_text = top_doc.page_content
     async def generate_rag():
         full = []
-        for chunk in rag_chain.stream({"context": context_text, "question": query_rewriting}):
+        for chunk in rag_chain.stream({"context": context_text, "question": query_rewriting, "chat_history": history_str}):
             full.append(chunk)
             yield chunk
-        _persist_interaction(scope_id, query_rewriting, "".join(full), [context_text])
+        answer = "".join(full)
+        _save_turn(answer)
+        _persist_interaction(scope_id, query_rewriting, answer, [context_text])
     return StreamingResponse(generate_rag(), media_type="text/plain")
 
 
@@ -129,7 +146,7 @@ def run_evaluation(scope_id: str | None = None):
 
     records = interaction_store.load_interactions()
     if not records:
-        raise HTTPException(status_code=404, detail="No saved interaction data available for evaluation")
+        raise HTTPException(status_code=404, detail="No  data available for evaluation")
 
     run_dir = interaction_store.create_run_dir(scope_id=None)
     summary = run_ragas_evaluation(records, run_dir)
