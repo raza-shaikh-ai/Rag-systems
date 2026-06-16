@@ -3,18 +3,16 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 import hashlib
+from dotenv import load_dotenv
+load_dotenv()
 from fastapi.responses import StreamingResponse
 from fastapi import FastAPI,Depends,UploadFile, Form, HTTPException
 from auth.dependencies import get_scope_id
 from auth.jwtutils import create_scope_token
 #from rewrite.queryrewrite import rewrite
 from simpleai import simple_chain
-os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
-from dotenv import load_dotenv
-load_dotenv()
 from langsmith import traceable
 
-os.environ.setdefault("USER_AGENT", "main_dev_backend")
 
 BASE_DIR = Path(__file__).resolve().parent
 MODEL_DIR = BASE_DIR / "models"
