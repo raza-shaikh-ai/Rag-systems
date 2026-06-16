@@ -4,6 +4,7 @@ import asyncio
 import importlib
 import math
 from pathlib import Path
+from langsmith import traceable
 
 from datasets import Dataset
 asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
@@ -15,6 +16,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 os.environ.setdefault("USER_AGENT", "main_dev_ragas_evaluation")
 
 
+@traceable(name="load_metric_class")
 def _load_metric_class(metric_name: str):
     candidate_modules = [
         "ragas.metrics",
@@ -69,6 +71,7 @@ def _write_jsonl(path: Path, rows: list[dict]) -> None:
             handle.write("\n")
 
 
+@traceable(name="ragas_evaluation", run_type="chain")
 def run_ragas_evaluation(records: list[dict], run_dir: Path) -> dict:
     if not records:
         raise ValueError("No interaction records available for evaluation")

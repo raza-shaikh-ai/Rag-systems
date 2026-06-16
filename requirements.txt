@@ -50,3 +50,9 @@ safetensors==0.4.5
 datasets==3.1.0
 ragas
 
+# Google Generative AI
+google-genai
+
+# LangSmith for tracing and evaluation
+langsmith
+

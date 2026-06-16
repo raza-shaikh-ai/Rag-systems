@@ -12,6 +12,7 @@ from simpleai import simple_chain
 os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 from dotenv import load_dotenv
 load_dotenv()
+from langsmith import traceable
 
 os.environ.setdefault("USER_AGENT", "main_dev_backend")
 
@@ -63,6 +64,7 @@ def login(username: str):
     return {"token": token}
 
 @app.post("/inject/file")
+@traceable(name="injectfile")
 async def inject_file(
     file: UploadFile,
     scope_id: str = Depends(get_scope_id)
@@ -99,6 +101,7 @@ from retrivers.bm25 import bm25_retriever
 from retrivers.vector import get_vector_retriever
 
 @app.post("/ask")
+@traceable(name="ask")
 async def ask(
     question: str,
     scope_id: str = Depends(get_scope_id)
@@ -141,6 +144,7 @@ async def ask(
 
 
 @app.get("/evaluation/run")
+@traceable(name="run_evaluation")
 def run_evaluation(scope_id: str | None = None):
     from evaluation.pipeline import run_ragas_evaluation
 
