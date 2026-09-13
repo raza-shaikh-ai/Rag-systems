@@ -49,8 +49,20 @@
   <!-- MAIN APP -->
   <div id="app-screen" class="screen">
 
+    <!-- Mobile top bar -->
+    <div class="mobile-topbar">
+      <button class="btn-icon-only" id="mobile-menu-btn" onclick="toggleSidebar()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <span class="logo-text" style="font-size:15px;">Multilingual RAG</span>
+      <div class="user-avatar" id="mobile-user-avatar" style="width:28px;height:28px;font-size:11px;">R</div>
+    </div>
+
+    <!-- Sidebar overlay (mobile) -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
     <!-- Sidebar -->
-    <aside class="sidebar glass">
+    <aside class="sidebar glass" id="main-sidebar">
       <div class="sidebar-header">
         <div class="logo-icon small">
           <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="18" stroke="url(#g2)" stroke-width="2"/><path d="M12 20h16M20 12v16" stroke="url(#g2)" stroke-width="2" stroke-linecap="round"/><defs><linearGradient id="g2" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse"><stop stop-color="#818cf8"/><stop offset="1" stop-color="#c084fc"/></defs></svg>
@@ -123,7 +135,7 @@
         <div class="eval-trigger glass">
           <div class="eval-trigger-info">
             <h3>Run Evaluation</h3>
-            <p>Evaluates all stored interactions using Gemini as judge. Requires at least one RAG interaction.</p>
+            <p>Evaluates all stored interactions using DeepSeek as judge. Requires at least one RAG interaction.</p>
           </div>
           <div style="display:flex;gap:10px;align-items:center;">
             <button class="btn-icon-only" id="clear-history-btn" onclick="clearEvalHistory()" title="Clear history">
@@ -147,6 +159,18 @@
 
     </main>
   </div>
+
+  <!-- Mobile bottom nav -->
+  <nav class="mobile-bottom-nav" id="mobile-bottom-nav">
+    <button class="mobile-nav-item active" id="mob-nav-chat" onclick="switchTab('chat'); setMobileNav('chat')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span>Chat</span>
+    </button>
+    <button class="mobile-nav-item" id="mob-nav-eval" onclick="switchTab('eval'); setMobileNav('eval')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <span>Evaluate</span>
+    </button>
+  </nav>
 
   <script src="app.js"></script>
 </body>

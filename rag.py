@@ -1,6 +1,6 @@
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_aws import ChatBedrockConverse
 from dotenv import load_dotenv
 import os
 
@@ -31,10 +31,10 @@ ANSWER:""",
     input_variables=["context", "question", "chat_history"]
 )
 
-model = ChatGoogleGenerativeAI(
-    model="models/gemini-3.1-flash-lite",
-    google_api_key=os.getenv("gemini"),
-    max_output_tokens=800,
+model = ChatBedrockConverse(
+    model="deepseek.v3.2",
+    region_name=os.getenv("AWS_DEFAULT_REGION", "us-east-1"),
+    max_tokens=800,
     temperature=0.1
 )
 

@@ -1,23 +1,13 @@
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_aws import BedrockEmbeddings
+import os
+
 _embeddings = None
 
-"""
 def get_embeddings():
     global _embeddings
     if _embeddings is None:
-        _embeddings = HuggingFaceEmbeddings(
-            model_name="BAAI/bge-m3",
-            encode_kwargs={"normalize_embeddings": True}
-        )
-    return _embeddings
-
-"""
-
-def get_embeddings():
-    global _embeddings
-    if _embeddings is None:
-        _embeddings = HuggingFaceEmbeddings(
-            model_name="sentence-transformers/all-MiniLM-L6-v2",
-            encode_kwargs={"normalize_embeddings": True}
+        _embeddings = BedrockEmbeddings(
+            model_id="amazon.nova-2-multimodal-embeddings-v1:0",
+            region_name=os.getenv("AWS_DEFAULT_REGION", "us-east-1"),
         )
     return _embeddings

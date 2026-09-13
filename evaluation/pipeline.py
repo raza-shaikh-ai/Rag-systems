@@ -10,8 +10,8 @@ from datasets import Dataset
 asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
 from ragas import evaluate
 from ragas.llms import LangchainLLMWrapper
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_aws import ChatBedrockConverse
+from langchain_aws import BedrockEmbeddings
 
 os.environ.setdefault("USER_AGENT", "main_dev_ragas_evaluation")
 
@@ -101,17 +101,16 @@ def run_ragas_evaluation(records: list[dict], run_dir: Path) -> dict:
     _write_jsonl(run_dir / "dataset.jsonl", dataset_rows)
 
     dataset = Dataset.from_list(dataset_rows)
-    evaluator_model = ChatGoogleGenerativeAI(
-        model="models/gemini-3.1-flash-lite",
-        google_api_key=os.getenv("gemini"),
-        max_output_tokens=1024,
+    evaluator_model = ChatBedrockConverse(
+        model="deepseek.v3.2",
+        region_name=os.getenv("AWS_DEFAULT_REGION", "us-east-1"),
+        max_tokens=1024,
         temperature=0.0,
     )
     evaluator_llm = LangchainLLMWrapper(evaluator_model)
-    evaluator_embeddings = HuggingFaceEmbeddings(
-        model_name="BAAI/bge-m3",
-        cache_folder=None,
-        encode_kwargs={"normalize_embeddings": True},
+    evaluator_embeddings = BedrockEmbeddings(
+        model_id="amazon.nova-2-multimodal-embeddings-v1:0",
+        region_name=os.getenv("AWS_DEFAULT_REGION", "us-east-1"),
     )
 
     result = evaluate(

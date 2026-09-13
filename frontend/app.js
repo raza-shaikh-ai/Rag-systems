@@ -75,6 +75,9 @@ function enterApp() {
   const initials = currentUsername.charAt(0).toUpperCase();
   document.getElementById('user-avatar').textContent = initials;
   document.getElementById('user-name-display').textContent = currentUsername;
+  // Sync mobile top bar avatar
+  const mobileAvatar = document.getElementById('mobile-user-avatar');
+  if (mobileAvatar) mobileAvatar.textContent = initials;
 }
 
 function handleLogout() {
@@ -102,6 +105,36 @@ function switchTab(name) {
   document.getElementById(`tab-${name}`).classList.add('active');
   document.getElementById(`nav-${name}`).classList.add('active');
   if (name === 'eval') renderEvalHistory();
+  // Close sidebar drawer on mobile after navigation
+  closeSidebar();
+}
+
+/* ══════════════════════════════════════════
+   MOBILE SIDEBAR
+══════════════════════════════════════════ */
+function toggleSidebar() {
+  const sidebar = document.getElementById('main-sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  const isOpen = sidebar.classList.contains('open');
+  if (isOpen) {
+    closeSidebar();
+  } else {
+    sidebar.classList.add('open');
+    overlay.classList.add('active');
+  }
+}
+
+function closeSidebar() {
+  const sidebar = document.getElementById('main-sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  sidebar.classList.remove('open');
+  overlay.classList.remove('active');
+}
+
+function setMobileNav(name) {
+  document.querySelectorAll('.mobile-nav-item').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById(`mob-nav-${name}`);
+  if (btn) btn.classList.add('active');
 }
 
 /* ══════════════════════════════════════════

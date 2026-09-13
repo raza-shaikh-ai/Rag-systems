@@ -538,3 +538,145 @@ input::placeholder { color: var(--text-muted); }
 
 .run-chevron { width: 18px; height: 18px; color: var(--text-muted); flex-shrink: 0; }
 .eval-run-body { padding: 0 20px 20px; }
+
+/* ─── Mobile Top Bar ───────────────────────────────────────────── */
+.mobile-topbar {
+  display: none;
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  height: 56px; padding: 0 16px;
+  align-items: center; justify-content: space-between;
+  background: rgba(8,11,20,0.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+/* ─── Sidebar Overlay (mobile drawer backdrop) ─────────────────── */
+.sidebar-overlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 39;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(2px);
+  animation: fadeIn 0.2s ease;
+}
+.sidebar-overlay.active { display: block; }
+
+/* ─── Mobile Bottom Nav ────────────────────────────────────────── */
+.mobile-bottom-nav {
+  display: none;
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+  height: 60px;
+  background: rgba(8,11,20,0.95);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--glass-border);
+  padding: 0 8px;
+  align-items: stretch;
+  justify-content: space-around;
+}
+.mobile-nav-item {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 4px;
+  background: none; border: none; cursor: pointer;
+  color: var(--text-muted); font-family: inherit;
+  font-size: 10px; font-weight: 500; padding: 6px 0;
+  transition: color var(--transition);
+  border-radius: var(--radius-sm);
+}
+.mobile-nav-item svg { width: 20px; height: 20px; }
+.mobile-nav-item.active { color: var(--primary); }
+.mobile-nav-item:hover { color: var(--text); }
+
+/* ─── Responsive Breakpoints ───────────────────────────────────── */
+
+/* Tablet (≤ 768px) */
+@media (max-width: 768px) {
+
+  /* Show mobile UI elements */
+  .mobile-topbar { display: flex; }
+  .mobile-bottom-nav { display: flex; }
+
+  /* App layout — full screen, no sidebar offset */
+  #app-screen { flex-direction: column; }
+
+  /* Sidebar becomes a slide-in drawer */
+  .sidebar {
+    position: fixed; top: 0; left: 0; bottom: 0;
+    width: 260px !important; min-width: 0 !important;
+    z-index: 40;
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(.4,0,.2,1);
+    border-right: 1px solid var(--glass-border);
+    padding-top: 72px; /* below topbar */
+  }
+  .sidebar.open { transform: translateX(0); }
+
+  /* Main content fills screen, push below topbar + above bottom nav */
+  .main-content {
+    height: 100vh;
+    padding-top: 56px;
+    padding-bottom: 60px;
+  }
+
+  /* Tab panels less padding on mobile */
+  .tab-panel { padding: 20px 16px; }
+
+  /* Panel header smaller */
+  .panel-header h2 { font-size: 20px; }
+  .panel-header { margin-bottom: 18px; }
+
+  /* Auth card full-width with padding */
+  .auth-card {
+    margin: 0 16px;
+    padding: 32px 24px;
+  }
+
+  /* Message bubbles wider on mobile */
+  .msg-bubble { max-width: 85%; }
+
+  /* Chat input more touch-friendly */
+  .chat-input-wrap { padding: 8px 8px 8px 14px; }
+  #question-input { font-size: 16px !important; } /* Prevents iOS zoom */
+  .btn-send { width: 44px; height: 44px; }
+  .btn-attach { padding: 10px; }
+
+  /* Eval trigger stack vertically on small screens */
+  .eval-trigger {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  /* Metric cards — 2 columns on tablet */
+  .eval-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Eval rows less padding */
+  .eval-row { padding: 16px; }
+  .eval-run-header { padding: 14px 16px; }
+  .eval-run-body { padding: 0 16px 16px; }
+}
+
+/* Phone (≤ 480px) */
+@media (max-width: 480px) {
+
+  /* Single column metric cards */
+  .eval-summary { grid-template-columns: 1fr; }
+
+  /* Tighter tab padding */
+  .tab-panel { padding: 16px 12px; }
+
+  /* Orbs smaller so they don't dominate */
+  .orb-1 { width: 280px; height: 280px; }
+  .orb-2 { width: 220px; height: 220px; }
+  .orb-3 { width: 160px; height: 160px; }
+
+  /* Metric value smaller */
+  .metric-value { font-size: 28px; }
+
+  /* Score badges wrap nicely */
+  .eval-row-scores { gap: 8px; }
+
+  /* Context text smaller */
+  .ctx-text { font-size: 11px; }
+}
+
