@@ -99,6 +99,14 @@ from retrivers.hybrid import hybrid_retrieve_top1
 from retrivers.bm25 import bm25_retriever
 from retrivers.vector import get_vector_retriever
 
+
+@app.post("/chat/reset")
+def reset_chat(scope_id: str = Depends(get_scope_id)):
+    """Clear the in-memory chat history for this user so a new document
+    starts with a clean conversation context."""
+    chat_histories.pop(scope_id, None)
+    return {"status": "chat history cleared"}
+
 @app.post("/ask")
 @traceable(name="ask")
 async def ask(

@@ -306,7 +306,24 @@ async function handleInlineUpload(e) {
     });
     const data = await res.json();
     if (!res.ok || data.error) throw new Error(data.error || data.detail || 'Upload failed');
-    showChatToast(`✓ "${file.name}" uploaded — you can now ask questions about it!`, 'success');
+
+    // Reset server-side chat history so the old PDF's context doesn't bleed in
+    try {
+      await fetch(`${API}/chat/reset`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
+    } catch {}
+
+    // Clear chat window for the new document
+    const chatEl = document.getElementById('chat-messages');
+    chatEl.innerHTML = `
+      <div class="chat-welcome">
+        <div class="welcome-icon">✦</div>
+        <p><strong>"${file.name}"</strong> loaded — ask questions about it!</p>
+      </div>`;
+
+    showChatToast(`✓ "${file.name}" ready — start asking questions!`, 'success');
     setTimeout(() => hideChatToast(), 4000);
   } catch (err) {
     showChatToast(`✗ ${err.message}`, 'error-status');
@@ -316,6 +333,7 @@ async function handleInlineUpload(e) {
     attachBtn.disabled = false;
     e.target.value = '';
   }
+
 }
 
 function showChatToast(msg, cls) {
