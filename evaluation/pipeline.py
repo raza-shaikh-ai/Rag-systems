@@ -71,7 +71,6 @@ def _write_jsonl(path: Path, rows: list[dict]) -> None:
             handle.write("\n")
 
 
-@traceable(name="ragas_evaluation", run_type="chain")
 def run_ragas_evaluation(records: list[dict], run_dir: Path) -> dict:
     if not records:
         raise ValueError("No interaction records available for evaluation")
@@ -116,18 +115,24 @@ def run_ragas_evaluation(records: list[dict], run_dir: Path) -> dict:
         region_name=os.getenv("AWS_DEFAULT_REGION", "us-east-1"),
     )
 
-    result = evaluate(
-        dataset=dataset,
-        metrics=[
-            _load_metric_class("AnswerRelevancy")(),
-            _load_metric_class("Faithfulness")(),
-            _load_metric_class("ContextPrecision")(),
-        ],
-        llm=evaluator_llm,
-        embeddings=evaluator_embeddings,
-        show_progress=False,
-        raise_exceptions=False,
-    )
+
+    _ls_tracing = os.environ.pop("LANGSMITH_TRACING", None)
+    try:
+        result = evaluate(
+            dataset=dataset,
+            metrics=[
+                _load_metric_class("AnswerRelevancy")(),
+                _load_metric_class("Faithfulness")(),
+                _load_metric_class("ContextPrecision")(),
+            ],
+            llm=evaluator_llm,
+            embeddings=evaluator_embeddings,
+            show_progress=False,
+            raise_exceptions=False,
+        )
+    finally:
+        if _ls_tracing is not None:
+            os.environ["LANGSMITH_TRACING"] = _ls_tracing
 
     summary = {
         "sample_count": len(dataset_rows),
