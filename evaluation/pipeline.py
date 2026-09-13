@@ -4,10 +4,37 @@ import asyncio
 import importlib
 import math
 from pathlib import Path
-from langsmith import traceable
 
 from datasets import Dataset
+
 asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
+
+# ── Patch RAGAS before it is used ─────────────────────────────────────────────
+# When LangSmith tracing is active (or when ChatBedrockConverse doesn't fire
+# LangChain callbacks), ragas.callbacks.parse_run_traces receives an empty list
+# and crashes with `IndexError: list index out of range` at root_traces[0].
+# We replace the function with a safe version that returns {} on that path.
+try:
+    import ragas.callbacks as _ragas_cb
+
+    _orig_parse_run_traces = _ragas_cb.parse_run_traces
+
+    def _safe_parse_run_traces(run_traces, run_id):
+        try:
+            return _orig_parse_run_traces(run_traces, run_id)
+        except (IndexError, Exception):
+            return {}
+
+    _ragas_cb.parse_run_traces = _safe_parse_run_traces
+
+    # Also patch dataset_schema which imports parse_run_traces by reference
+    import ragas.dataset_schema as _ragas_ds
+    if hasattr(_ragas_ds, "parse_run_traces"):
+        _ragas_ds.parse_run_traces = _safe_parse_run_traces
+except Exception:
+    pass  # If RAGAS internals change, fail gracefully
+# ──────────────────────────────────────────────────────────────────────────────
+
 from ragas import evaluate
 from ragas.llms import LangchainLLMWrapper
 from langchain_aws import ChatBedrockConverse
@@ -16,7 +43,6 @@ from langchain_aws import BedrockEmbeddings
 os.environ.setdefault("USER_AGENT", "main_dev_ragas_evaluation")
 
 
-@traceable(name="load_metric_class")
 def _load_metric_class(metric_name: str):
     candidate_modules = [
         "ragas.metrics",
@@ -100,9 +126,8 @@ def run_ragas_evaluation(records: list[dict], run_dir: Path) -> dict:
     _write_jsonl(run_dir / "dataset.jsonl", dataset_rows)
 
     dataset = Dataset.from_list(dataset_rows)
-    # NOTE: DeepSeek v3.2 returns incomplete NLIStatementOutput (missing reason/verdict)
-    # which causes RAGAS to crash with IndexError on root_traces. Nova Pro follows
-    # RAGAS structured output schemas reliably and needs no Marketplace subscription.
+
+    # Nova Pro follows RAGAS structured output schemas reliably.
     evaluator_model = ChatBedrockConverse(
         model="amazon.nova-pro-v1:0",
         region_name=os.getenv("AWS_DEFAULT_REGION", "us-east-1"),
@@ -115,24 +140,18 @@ def run_ragas_evaluation(records: list[dict], run_dir: Path) -> dict:
         region_name=os.getenv("AWS_DEFAULT_REGION", "us-east-1"),
     )
 
-
-    _ls_tracing = os.environ.pop("LANGSMITH_TRACING", None)
-    try:
-        result = evaluate(
-            dataset=dataset,
-            metrics=[
-                _load_metric_class("AnswerRelevancy")(),
-                _load_metric_class("Faithfulness")(),
-                _load_metric_class("ContextPrecision")(),
-            ],
-            llm=evaluator_llm,
-            embeddings=evaluator_embeddings,
-            show_progress=False,
-            raise_exceptions=False,
-        )
-    finally:
-        if _ls_tracing is not None:
-            os.environ["LANGSMITH_TRACING"] = _ls_tracing
+    result = evaluate(
+        dataset=dataset,
+        metrics=[
+            _load_metric_class("AnswerRelevancy")(),
+            _load_metric_class("Faithfulness")(),
+            _load_metric_class("ContextPrecision")(),
+        ],
+        llm=evaluator_llm,
+        embeddings=evaluator_embeddings,
+        show_progress=False,
+        raise_exceptions=False,
+    )
 
     summary = {
         "sample_count": len(dataset_rows),
