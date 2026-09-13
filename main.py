@@ -159,6 +159,13 @@ def run_evaluation(scope_id: str | None = None):
         json.dump(summary, handle, ensure_ascii=False, indent=2)
     return summary
 
+
+@app.get("/evaluation/history")
+def evaluation_history():
+    """Return all past evaluation run summaries, newest first."""
+    summaries = interaction_store.load_run_history()
+    return {"runs": summaries, "count": len(summaries)}
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
