@@ -101,8 +101,11 @@ def run_ragas_evaluation(records: list[dict], run_dir: Path) -> dict:
     _write_jsonl(run_dir / "dataset.jsonl", dataset_rows)
 
     dataset = Dataset.from_list(dataset_rows)
+    # NOTE: DeepSeek v3.2 returns incomplete NLIStatementOutput (missing reason/verdict)
+    # which causes RAGAS to crash with IndexError on root_traces. Nova Pro follows
+    # RAGAS structured output schemas reliably and needs no Marketplace subscription.
     evaluator_model = ChatBedrockConverse(
-        model="deepseek.v3.2",
+        model="amazon.nova-pro-v1:0",
         region_name=os.getenv("AWS_DEFAULT_REGION", "us-east-1"),
         max_tokens=1024,
         temperature=0.0,
