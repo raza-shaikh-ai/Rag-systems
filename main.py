@@ -49,7 +49,7 @@ def _persist_interaction(scope_id: str, question: str, answer: str, contexts: li
         }
     )
 
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 def root():
     return {"status": "RAG Backend is running"}
 
